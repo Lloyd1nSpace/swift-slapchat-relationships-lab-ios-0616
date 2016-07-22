@@ -12,6 +12,8 @@ import CoreData
 class DataStore {
     
     var messages:[Message] = []
+    var recipient: Recipient?
+    var recipients: [Recipient] = []
     
     static let sharedDataStore = DataStore()
     
@@ -32,16 +34,32 @@ class DataStore {
         }
     }
     
-    func fetchData ()
-    {
+    func fetchData () {
         
-        var error:NSError? = nil
+         var error:NSError? = nil
+
+        let recipientRequest = NSFetchRequest(entityName: "Recipient")
         
+        do {
+            self.recipients = try self.managedObjectContext.executeFetchRequest(recipientRequest) as! [Recipient]
+        } catch let nserror2 as NSError {
+            error = nserror2
+            self.recipients = []
+        }
+        
+        if self.recipients.count == 0 {
+            self.generateTestData()
+        }
+        
+        for recipientInArray in recipients {
+                self.recipient = recipientInArray
+        }
+
         let messagesRequest = NSFetchRequest(entityName: "Message")
         
-        let createdAtSorter = NSSortDescriptor(key: "createdAt", ascending:true)
+       // let createdAtSorter = NSSortDescriptor(key: "createdAt", ascending:true)
         
-        messagesRequest.sortDescriptors = [createdAtSorter]
+      //  messagesRequest.sortDescriptors = [createdAtSorter]
         
         do{
             messages = try managedObjectContext.executeFetchRequest(messagesRequest) as! [Message]
@@ -73,6 +91,14 @@ class DataStore {
         
         messageThree.content = "Message 3"
         messageThree.createdAt = NSDate()
+        
+        
+        let recipientOne: Recipient = NSEntityDescription.insertNewObjectForEntityForName("Recipient", inManagedObjectContext: self.managedObjectContext) as! Recipient
+        recipientOne.name = "Lloyd"
+        recipientOne.email = "lloyd1nspace@icloud.com"
+        recipientOne.twitterHandle = "Lloyd1nSpace"
+        recipientOne.phoneNumber = "2813848004"
+        
         
         saveContext()
         fetchData()
